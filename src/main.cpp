@@ -387,6 +387,25 @@ public:
         rebuildLayout();
     }
 
+    int cheer(int viewers) {
+        std::random_device rd;
+        std::mt19937 rng(rd());
+
+        float cheerRate = 0.02f + (viewers / 10000.0f);
+
+        std::uniform_real_distribution<float> triDist(0.0f, 1.0f);
+        float u = triDist(rng);
+        float low = 100, high = 500, peak = 150;
+        float baseBits = (u < (peak - low) / (high - low))
+            ? low + sqrt(u * (high - low) * (peak - low))
+            : high - sqrt((1 - u) * (high - low) * (high - peak));
+
+        float total = viewers * cheerRate * baseBits;
+
+        int result = (int)(round(total / 100.0f) * 100);
+        return result > 0 ? result : 0;
+    }
+
     void checkProgress(float dt) {
         auto fields = m_fields.self();
         float progress = this->getCurrentPercent();
@@ -567,6 +586,46 @@ public:
                 addChatMessage(messages[rand() % messages.size()]);
                 fields->m_randomChatTimer = 0;
                 fields->m_nextChatDelay = 0.033f + (rand() % 18) / 1000.0f / 100.0f * fields->m_numViewers;
+            }
+        } 
+
+        // bits
+        if (rand() % 100000 == 1) {
+            auto winSize = CCDirector::sharedDirector()->getWinSize();
+            CCPoint screenCenter = ccp(winSize.width / 2, winSize.height / 2);
+            cheer(fields->m_numViewers);
+            int numBitIcons = 100;
+            for (int i = 0; i < numBitIcons; i++) {
+                auto orb = CCSprite::createWithSpriteFrameName("currencyOrb_001.png");
+                if (!orb) continue;
+
+                orb->setPosition(screenCenter);
+                orb->setScale(0.3f);
+                orb->setOpacity(255);
+
+                float angle = (360.0f / numBitIcons) * i;
+                float rad = CC_DEGREES_TO_RADIANS(angle);
+                float dist = 120.0f + (rand() % 80);
+
+                CCPoint target = ccp(cosf(rad) * dist, sinf(rad) * dist);
+                float delay = (rand() % 15) / 100.0f;
+
+                auto wait1 = CCDelayTime::create(delay);
+                auto moveOut = CCMoveBy::create(0.25f, target);
+                auto scaleUp = CCScaleBy::create(0.25f, 2.0f);
+                auto burstSpawn = CCSpawn::create(moveOut, scaleUp, nullptr);
+                auto hang = CCDelayTime::create(0.4f + (rand() % 20) / 100.0f);
+
+                float driftX = ((rand() % 40) - 20);
+                auto driftDown = CCMoveBy::create(0.9f, ccp(driftX, -60.0f));
+                auto fadeOut = CCFadeOut::create(0.9f);
+                auto fallSpawn = CCSpawn::create(driftDown, fadeOut, nullptr);
+
+                auto remove = CCCallFunc::create(orb, callfunc_selector(CCNode::removeFromParent));
+                auto seq = CCSequence::create(wait1, burstSpawn, hang, fallSpawn, remove, nullptr);
+
+                orb->runAction(seq);
+                this->addChild(orb, 999);
             }
         }
     }
