@@ -37,60 +37,72 @@ bool ChatConfigPopup::init(float width, float height) {
     }
 
     auto label1 = CCLabelBMFont::create("Hold %:", "bigFont.fnt");
-    label1->setPosition({center.width - 120, center.height + 50});
+    label1->setPosition({center.width - 120, center.height + 70});
     label1->setScale(0.3f);
     m_mainLayer->addChild(label1);
 
     m_textInput1 = geode::TextInput::create(200.0f, "");
-    m_textInput1->setPosition({center.width + 30, center.height + 50});
+    m_textInput1->setPosition({center.width + 30, center.height + 70});
     m_textInput1->setFilter("0123456789");
     m_textInput1->setMaxCharCount(3);
     m_textInput1->setString(std::to_string(static_cast<int>(holdPercent)));
     m_mainLayer->addChild(m_textInput1);
 
     auto label2 = CCLabelBMFont::create("Go %:", "bigFont.fnt");
-    label2->setPosition({center.width - 127, center.height + 10});
+    label2->setPosition({center.width - 127, center.height + 30});
     label2->setScale(0.3f);
     m_mainLayer->addChild(label2);
 
     m_textInput2 = geode::TextInput::create(200.0f, "");
-    m_textInput2->setPosition({center.width + 30, center.height + 10});
+    m_textInput2->setPosition({center.width + 30, center.height + 30});
     m_textInput2->setFilter("0123456789");
     m_textInput2->setMaxCharCount(3);
     m_textInput2->setString(std::to_string(static_cast<int>(goPercent)));
     m_mainLayer->addChild(m_textInput2);
 
     auto label3 = CCLabelBMFont::create("Super Go %:", "bigFont.fnt");
-    label3->setPosition({center.width - 111, center.height - 30});
+    label3->setPosition({center.width - 111, center.height - 10});
     label3->setScale(0.3f);
     m_mainLayer->addChild(label3);
 
     m_textInput3 = geode::TextInput::create(200.0f, "");
-    m_textInput3->setPosition({center.width + 30, center.height - 30});
+    m_textInput3->setPosition({center.width + 30, center.height - 10});
     m_textInput3->setFilter("0123456789");
     m_textInput3->setMaxCharCount(3);
     m_textInput3->setString(std::to_string(static_cast<int>(superGoPercent)));
     m_mainLayer->addChild(m_textInput3);
 
     auto label4 = CCLabelBMFont::create("GG %:", "bigFont.fnt");
-    label4->setPosition({center.width - 127, center.height - 70});
+    label4->setPosition({center.width - 127, center.height - 50});
     label4->setScale(0.3f);
     m_mainLayer->addChild(label4);
 
     m_textInput4 = geode::TextInput::create(200.0f, "");
-    m_textInput4->setPosition({center.width + 30, center.height - 70});
+    m_textInput4->setPosition({center.width + 30, center.height - 50});
     m_textInput4->setFilter("0123456789.");
     m_textInput4->setMaxCharCount(7);
     m_textInput4->setString(std::to_string(ggPercent));
     m_mainLayer->addChild(m_textInput4);
 
-    auto label5 = CCLabelBMFont::create("Enabled:", "bigFont.fnt");
-    label5->setPosition({center.width - 118, center.height - 110});
+    auto label5 = CCLabelBMFont::create("Min Death %:", "bigFont.fnt");
+    label5->setPosition({center.width - 118, center.height - 90});
     label5->setScale(0.3f);
     m_mainLayer->addChild(label5);
 
+    m_textInput5 = geode::TextInput::create(200.0f, "");
+    m_textInput5->setPosition({center.width + 30, center.height - 90});
+    m_textInput5->setFilter("0123456789.");
+    m_textInput5->setMaxCharCount(7);
+    m_textInput5->setString(std::to_string(ggPercent));
+    m_mainLayer->addChild(m_textInput5);
+
+    auto label6 = CCLabelBMFont::create("Enabled:", "bigFont.fnt");
+    label6->setPosition({center.width - 118, center.height - 100});
+    label6->setScale(0.3f);
+    m_mainLayer->addChild(label6);
+
     auto toggleMenu = CCMenu::create();
-    toggleMenu->setPosition({center.width + 30, center.height - 110});
+    toggleMenu->setPosition({center.width + 30, center.height - 100});
     m_enableToggle = CCMenuItemToggler::createWithStandardSprites(
         this, menu_selector(ChatConfigPopup::onToggle), 0.6f
     );

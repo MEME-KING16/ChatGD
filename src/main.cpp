@@ -213,6 +213,7 @@ class $modify(MyPlayLayer, PlayLayer) {
         float m_deathChatTimer = 0.0f;
         float m_deathSpamDuration = 2.0f;
         bool m_isDeathSpamming = false;
+        float deathPercent = 5.0f;
         float holdPercent = 22.0f;
         float goPercent = 37.0f;
         float superGoPercent = 80.0f;
@@ -429,7 +430,7 @@ public:
             if (fields->m_deathChatTimer >= fields->m_deathSpamDuration) {
                 fields->m_isDeathSpamming = false;
                 fields->m_deathChatTimer = 0;
-            } else if (fields->m_lastAttPercent <= (float)fields->m_lvl->getNormalPercent()) {
+            } else if (fields->m_lastAttPercent <= (float)fields->m_lvl->getNormalPercent() && fields->m_lastAttPercent <= fields->deathPercent) {
                 fields->m_randomChatTimer += dt;
                 if (fields->m_randomChatTimer >= fields->m_nextChatDelay) {
                     std::vector<std::string> deathMessages = {
