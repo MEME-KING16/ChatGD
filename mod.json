@@ -1,5 +1,5 @@
 {
-	"geode": "5.3.0",
+	"geode": "5.7.1",
 	"gd": {
 		"win": "2.2081",
 		"android": "2.2081",
@@ -8,7 +8,7 @@
 	},
 	"id": "memeking16.chatgd",
 	"name": "ChatGD",
-	"version": "v1.1.0",
+	"version": "v1.4.0",
 	"developers": [
 		"MEMEKING16",
 		"Axiom"
@@ -36,25 +36,69 @@
             "default": false
         },
 		"custom-chatters": {
+			"name": "Custom Chatters",
 			"type": "string",
 			"default": "",
-			"name": "Custom Chatters",
 			"description": "list of custom chatters that u want added to the chat seperated by spaces"
 		},
+		"positive-chat": {
+			"type": "bool",
+			"name": "Positive Chat",
+			"description": "Makes the chat more positive! We need more positivity around here :)\n\n<cb>Feature by XblazeGMD</c>",
+			"default": false
+		},
 		"x-off": {
+			"name": "Chat x offset",
 			"type": "int",
-			"default": 0,
-			"name": "Chat x offset"
+			"default": 0
 		},
 		"y-off": {
+			"name": "Chat y offset",
 			"type": "int",
-			"default": 0,
-			"name": "Chat y offset"
+			"default": 0
 		},
 		"viewer-count": {
+			"name": "Viewer Count",
 			"type": "int",
-			"default": 100,
-			"name": "Viewer Count"
+			"default": 100
+		},
+		"enabled-by-default": {
+			"name": "Is Enabled by Default",
+			"type": "bool",
+			"default": true
+		},
+		"font": {
+			"name": "Font",
+			"type": "string",
+			"one-of": ["bigFont", "gjFont01", "gjFont02", "gjFont03", "gjFont04", "gjFont05", "gjFont06", "gjFont07", "gjFont08", "gjFont09", "gjFont10", "gjFont11", "gjFont12", "gjFont13", "gjFont14", "gjFont15", "gjFont16", "gjFont17", "gjFont18", "gjFont19", "gjFont20", "gjFont21", "gjFont22", "gjFont23", "gjFont24", "gjFont25", "gjFont26", "gjFont27", "gjFont28", "gjFont29", "gjFont30", "gjFont31", "gjFont32", "gjFont33", "gjFont34", "gjFont35", "gjFont36", "gjFont37", "gjFont38", "gjFont39", "gjFont40", "gjFont41", "gjFont42", "gjFont43", "gjFont44", "gjFont45", "gjFont46", "gjFont47", "gjFont48", "gjFont49", "gjFont50", "gjFont51", "gjFont52", "gjFont53", "gjFont54", "gjFont55", "gjFont56", "gjFont57", "gjFont58", "gjFont59", "gjFont60"],
+			"default": "bigFont"
+		},
+		"opacity": {
+			"type": "float",
+			"name": "Opacity",
+			"description": "To change transparency of the chat",
+			"default": 1,
+			"min": 0,
+			"max": 1,
+			"control": {
+				"arrows": true,
+				"arrow-step": 0.05,
+				"big-arrows": false,
+				"big-arrow-step": 0.2,
+				"slider": true,
+				"slider-step": 0.05,
+				"input": false
+			}
+		},
+		"he": {
+			"name": "Replacement for he",
+			"type": "string",
+			"default": "he"
+		},
+		"him": {
+			"name": "Replacement for him",
+			"type": "string",
+			"default": "him"
 		}
     }
 }

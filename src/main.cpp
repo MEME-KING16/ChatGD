@@ -16,9 +16,9 @@ static std::vector<std::string> GD_PLAYERS = {
     "Npesta", "xanii", "BTD6", "Cataclysm",
     "Krazyman50", "Zobros", "Sea1997", "Pennutoh", "FunnyGame",
     "TrusTa", "RicoLP", "ViPriN", "ChaSe", "Lemons",
-    "Vortrox",
+    "Vortrox", "Triaxis",
     // Contributors
-    "Axiom", "Human", "siniNight"
+    "Axiom", "Human", "siniNight", "xblaze"
 };
 
 // static std::vector<bool> hasSpoken;
@@ -73,6 +73,13 @@ static ChatMessage parseChatMessage(const std::string& raw) {
 
 static std::string chat(const std::string& msg) {
     return randomPlayer() + ": " + msg;
+}
+
+std::string to_upper(std::string str) {
+    std::ranges::transform(str, str.begin(), [](unsigned char c) {
+        return std::toupper(c);
+    });
+    return str;
 }
 
 static std::string wrapText(const std::string& msg, int maxChars = 25, int firstLineOffset = 0) {
@@ -152,7 +159,7 @@ static const std::vector<std::string> IDLE_MESSAGES = {
     "monkaS",
     "prayge",
     "copium",
-    "he's actually doing it",
+    // "he's actually doing it",
     "no shot",
     "bro woke up",
     "diff",
@@ -167,15 +174,15 @@ static const std::vector<std::string> IDLE_MESSAGES = {
     "not missing",
     "clean inputs",
     "GG EZ",
-    "he's built different",
+    // "he's built different",
     "W grinder",
     "insane player",
     "demon time",
-    "he's not stopping",
+    // "he's not stopping",
 };
 
 static const std::vector<std::string> START_MESSAGES = {
-    "he's starting",
+    // "he's starting",
     "here we go",
     "attempt time",
     "lets see it",
@@ -190,7 +197,7 @@ static const std::vector<std::string> START_MESSAGES = {
     "back at it",
     "W attempt pls",
     "another one",
-    "let him cook",
+    // "let "+fields->m_him+" cook",
     "cooking rn",
     "o7",
     "real",
@@ -199,7 +206,7 @@ static const std::vector<std::string> START_MESSAGES = {
 
 class $modify(MyPlayLayer, PlayLayer) {
     struct Fields {
-        CCNode* m_chatRoot = nullptr;
+        CCNodeRGBA* m_chatRoot = nullptr;
         CCLayerColor* m_chatBg = nullptr;
         CCLayerColor* m_header = nullptr;
         CCLabelBMFont* m_headerLabel = nullptr;
@@ -219,12 +226,19 @@ class $modify(MyPlayLayer, PlayLayer) {
         float ggPercent = 99.9999f;
         int att = 0;
         bool enabled = false;
+        bool m_positiveChat = false;
         bool m_echoClipPresent = false;
         bool m_clipMessageFired = false;
         float m_bestPercent = 0.0f;
         float m_idleChatTimer = 0.0f;
         float m_nextIdleDelay = 2.8f;
         int m_numViewers = 69;
+        float m_lastAttPercent = 0.0f;
+        float m_opacity = 1.0f;
+        GJGameLevel* m_lvl;
+        std::string m_font = "bigFont";
+        std::string m_he = "he";
+        std::string m_him = "him";
     };
 
 public:
@@ -235,8 +249,13 @@ public:
         fields->goPercent = loadPercentForLevel(m_level->m_levelID, "go-percent", 37.0f);
         fields->superGoPercent = loadPercentForLevel(m_level->m_levelID, "supergo-percent", 80.0f);
         fields->ggPercent = loadPercentForLevel(m_level->m_levelID, "gg-percent", 99.9999f);
-        fields->enabled = loadDisabledForLevel(m_level->m_levelID, "enabled", false);
+        fields->enabled = loadDisabledForLevel(m_level->m_levelID, "enabled", !Mod::get()->getSettingValue<bool>("enabled-by-default"));
+        fields->m_positiveChat = Mod::get()->getSettingValue<bool>("positive-chat");
         fields->m_numViewers = Mod::get()->getSettingValue<int>("viewer-count");
+        fields->m_font = Mod::get()->getSettingValue<std::string>("font") + ".fnt";
+        fields->m_opacity = Mod::get()->getSettingValue<float>("opacity");
+        fields->m_he = Mod::get()->getSettingValue<std::string>("he");
+        fields->m_him = Mod::get()->getSettingValue<std::string>("him");
     }
 
     bool init(GJGameLevel* level, bool useReplay, bool dontCreateObjects) {
@@ -246,6 +265,8 @@ public:
         this->reloadThresholds();
 
         auto fields = m_fields.self();
+        fields->m_lvl = level;
+        fields->m_bestPercent = (float)level->getNormalPercent();
         fields->m_echoClipPresent = Loader::get()->isModLoaded("axiom.echoclip");
 
         auto winSize = CCDirector::sharedDirector()->getWinSize();
@@ -254,7 +275,7 @@ public:
         float chatY = 5.0f + Mod::get()->getSettingValue<int>("y-off");
 
         // chat root node
-        fields->m_chatRoot = CCNode::create();
+        fields->m_chatRoot = CCNodeRGBA::create();
         fields->m_chatRoot->setPosition({chatX, chatY});
         fields->m_chatRoot->setZOrder(100);
         this->m_uiLayer->addChild(fields->m_chatRoot);
@@ -262,40 +283,46 @@ public:
         // chat box bg
         fields->m_chatBg = CCLayerColor::create({14, 14, 18, 200}, CHAT_WIDTH, CHAT_HEIGHT);
         fields->m_chatBg->setPosition({0, 0});
+        fields->m_chatBg->setOpacity(static_cast<GLubyte>(fields->m_opacity*255));
         fields->m_chatRoot->addChild(fields->m_chatBg);
 
         // header bar
         fields->m_header = CCLayerColor::create({100, 55, 200, 255}, CHAT_WIDTH, HEADER_HEIGHT);
         fields->m_header->setPosition({0, CHAT_HEIGHT - HEADER_HEIGHT});
+        fields->m_header->setOpacity(static_cast<GLubyte>(fields->m_opacity*255));
         fields->m_chatRoot->addChild(fields->m_header);
 
         // live badge
         fields->m_liveBadge = CCLayerColor::create({230, 30, 30, 255}, 18.0f, 9.0f);
         fields->m_liveBadge->setPosition({CHAT_PADDING, CHAT_HEIGHT - HEADER_HEIGHT + 3.5f});
+        fields->m_liveBadge->setOpacity(static_cast<GLubyte>(fields->m_opacity*255));
         fields->m_chatRoot->addChild(fields->m_liveBadge);
 
         // live text
-        fields->m_liveLabel = CCLabelBMFont::create("LIVE", "bigFont.fnt");
+        fields->m_liveLabel = CCLabelBMFont::create("LIVE", fields->m_font.c_str());
         fields->m_liveLabel->setScale(0.14f);
         fields->m_liveLabel->setColor({255, 255, 255});
         fields->m_liveLabel->setAnchorPoint({0.5f, 0.5f});
         fields->m_liveLabel->setPosition({CHAT_PADDING + 9.0f, CHAT_HEIGHT - HEADER_HEIGHT + 8.0f});
+        fields->m_liveLabel->setOpacity(static_cast<GLubyte>(fields->m_opacity*255));
         fields->m_chatRoot->addChild(fields->m_liveLabel);
 
         // header label
-        fields->m_headerLabel = CCLabelBMFont::create("CHAT", "bigFont.fnt");
+        fields->m_headerLabel = CCLabelBMFont::create("CHAT", fields->m_font.c_str());
         fields->m_headerLabel->setScale(0.22f);
         fields->m_headerLabel->setColor({255, 255, 255});
         fields->m_headerLabel->setAnchorPoint({0.0f, 0.5f});
         fields->m_headerLabel->setPosition({CHAT_PADDING + 24.0f, CHAT_HEIGHT - HEADER_HEIGHT / 2.0f});
+        fields->m_headerLabel->setOpacity(static_cast<GLubyte>(fields->m_opacity*255));
         fields->m_chatRoot->addChild(fields->m_headerLabel);
 
         // viewer count
-        fields->m_headerLabel = CCLabelBMFont::create(std::to_string(fields->m_numViewers).c_str(), "bigFont.fnt"); // this is stupid... for the reviewing staff pls give a better way to do ts (i am very sorry if this causes you pain)
+        fields->m_headerLabel = CCLabelBMFont::create(std::to_string(fields->m_numViewers).c_str(), fields->m_font.c_str()); // this is stupid... for the reviewing staff pls give a better way to do ts (i am very sorry if this causes you pain)
         fields->m_headerLabel->setScale(0.22f);
         fields->m_headerLabel->setColor({151, 18, 17});
         fields->m_headerLabel->setAnchorPoint({0.0f, 0.5f});
         fields->m_headerLabel->setPosition({CHAT_WIDTH - 35.0f, CHAT_HEIGHT - HEADER_HEIGHT / 2.0f});
+        fields->m_headerLabel->setOpacity(static_cast<GLubyte>(fields->m_opacity*255));
         fields->m_chatRoot->addChild(fields->m_headerLabel);
 
         // msg container
@@ -357,7 +384,7 @@ public:
 
         if (!msg.username.empty()) {
             std::string nameStr = msg.username + ": ";
-            auto nameLabel = CCLabelBMFont::create(nameStr.c_str(), "bigFont.fnt");
+            auto nameLabel = CCLabelBMFont::create(nameStr.c_str(), fields->m_font.c_str());
             nameLabel->setScale(TEXT_SCALE);
             nameLabel->setColor(colorForUsername(msg.username));
             nameLabel->setAnchorPoint({0.0f, 0.0f});
@@ -367,7 +394,7 @@ public:
         }
 
         std::string wrapped = wrapText(msg.text, 25, msg.username.size() + 2);
-        auto textLabel = CCLabelBMFont::create(wrapped.c_str(), "bigFont.fnt");
+        auto textLabel = CCLabelBMFont::create(wrapped.c_str(), fields->m_font.c_str());
         textLabel->setScale(TEXT_SCALE);
         textLabel->setColor({210, 210, 210});
         textLabel->setAnchorPoint({0.0f, 0.0f});
@@ -413,6 +440,11 @@ public:
         bool visible = !inPractice && !fields->enabled;
         fields->m_chatRoot->setVisible(visible);
 
+        if (progress != 0.0f && !fields->m_isDeathSpamming) {
+            fields->m_lastAttPercent = progress;
+        }
+        
+
         if (!visible) return;
 
         // idle chat so box feels alive even during normal play
@@ -420,7 +452,7 @@ public:
         if (fields->m_idleChatTimer >= fields->m_nextIdleDelay && !fields->m_isDeathSpamming) {
             addChatMessage(chat(IDLE_MESSAGES[rand() % IDLE_MESSAGES.size()]));
             fields->m_idleChatTimer = 0.0f;
-            fields->m_nextIdleDelay = 2.0f + (rand() % 25) / 10.0f;
+            fields->m_nextIdleDelay = 1.4f + (rand() % 25) / 10.0f;
         }
 
         // NOOOOOOOO
@@ -429,40 +461,82 @@ public:
             if (fields->m_deathChatTimer >= fields->m_deathSpamDuration) {
                 fields->m_isDeathSpamming = false;
                 fields->m_deathChatTimer = 0;
-            } else {
+            } else if (fields->m_lastAttPercent <= (float)fields->m_lvl->getNormalPercent()) {
                 fields->m_randomChatTimer += dt;
                 if (fields->m_randomChatTimer >= fields->m_nextChatDelay) {
-                    std::vector<std::string> deathMessages = {
-                        chat("RIP"),
-                        chat("NOOOO"),
-                        chat("rippp"),
-                        chat("F"),
-                        chat("NOOOOOO"),
-                        chat("rip bozo"),
-                        chat("oof"),
-                        chat("so close"),
-                        chat("unlucky"),
-                        chat("F in chat"),
-                        chat("rip"),
-                        chat("noooo way"),
-                        chat("bro"),
-                        chat("that was so close"),
-                        chat("NOOOOOOOOOO"),
-                        chat("next attempt"),
-                        chat("you had it"),
-                        chat("almost"),
-                        chat("not like this"),
-                        chat("gg attempt"),
-                    };
+                    std::vector<std::string> deathMessages;
+                    if (m_fields->m_positiveChat) {
+                        // a more positive chat!
+                        deathMessages = {
+                            chat("W"),
+                            chat("WWWW"),
+                            chat("W RUN"),
+                            chat("Nice run!"),
+                            chat("W W W W W"),
+                            chat("NICE!"),
+                            chat("BRO YOU'RE SO GOOD"),
+                            chat("YOU'RE THE GOAT"),
+                            chat("Next Zoink fr?"),
+                            chat("YESSSS"),
+                            chat("WWWWWWWWWWWW"),
+                            chat("NOOOOOOOOOO"), // cuz even the most positive chat will have someone sad
+                            chat("dang it"),
+                            chat("nice!"),
+                            chat("consistency is key"),
+                            chat("crap"),
+                            chat("rip bozo"),
+                            chat("so close"),
+                            chat("nice attempt"),
+                            chat("gg attempt"),
+                            chat("skill issue :p"),
+                        };
+                    } else {
+                        // your usual chat
+                        deathMessages = {
+                            chat("RIP"),
+                            chat("NOOOO"),
+                            chat("rippp"),
+                            chat("F"),
+                            chat("NOOOOOO"),
+                            chat("rip bozo"),
+                            chat("oof"),
+                            chat("so close"),
+                            chat("unlucky"),
+                            chat("F in chat"),
+                            chat("rip"),
+                            chat("noooo way"),
+                            chat("bro"),
+                            chat("that was so close"),
+                            chat("NOOOOOOOOOO"),
+                            chat("next attempt"),
+                            chat("you had it"),
+                            chat("almost"),
+                            chat("not like this"),
+                            chat("gg attempt"),
+                            chat("skill issue :p"), // may or may not have been added by xblaze... oh well
+                        };
+                    }
+
                     addChatMessage(deathMessages[rand() % deathMessages.size()]);
                     fields->m_randomChatTimer = 0;
                 }
-            }
+            } else if (fields->m_lastAttPercent > (float)fields->m_lvl->getNormalPercent()) {
+                    fields->m_randomChatTimer += dt;
+                    if (fields->m_randomChatTimer >= fields->m_nextChatDelay) {
+                        std::vector<std::string> messages = {
+                            chat("NEW BEST!!!!!"),
+                            chat("W NEW BEST!"),
+                            chat("W PROGRESS"),
+                            chat("GG NEW BEST"),
+                            chat("NEW BEST ALREADY?!?!"),
+                        };
+                        addChatMessage(messages[rand() % messages.size()]);
+                        fields->m_randomChatTimer = 0;
+                        float t = (progress - fields->goPercent) / (fields->superGoPercent - fields->goPercent);
+                        fields->m_nextChatDelay = 0.133f - (t * 0.033f) / 100.0f * abs(fields->m_numViewers);
+                    }
+                }
             return;
-        }
-
-        if (progress > fields->m_bestPercent) {
-            fields->m_bestPercent = progress;
         }
 
         if (fields->m_echoClipPresent && !fields->m_clipMessageFired) {
@@ -503,7 +577,7 @@ public:
                 addChatMessage(messages[rand() % messages.size()]);
                 fields->m_randomChatTimer = 0;
                 float t = (progress - fields->holdPercent) / (fields->goPercent - fields->holdPercent);
-                fields->m_nextChatDelay = 0.2f - (t * 0.067f) / 100.0f * fields->m_numViewers; // DONT ASK WHY IT JUST IS
+                fields->m_nextChatDelay = 0.2f - (t * 0.067f) / 100.0f * abs(fields->m_numViewers); // DONT ASK WHY IT JUST IS
             }
         }
         // gooo
@@ -517,19 +591,19 @@ public:
                     chat("GOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO"),
                     chat("GO GO GO GO"),
                     chat("YESYESYES"),
-                    chat("HES GOING"),
+                    chat(to_upper(fields->m_he)+"S GOING"),
                     chat("ACTUALLY GOING"),
                     chat("DO NOT MISS"),
                     chat("CMON CMON CMON"),
                     chat("W W W W W"),
                     chat("LETSSSSS GOOOOO"),
                     chat("clean"),
-                    chat("he is NOT dropping"),
+                    chat(fields->m_he+" is NOT dropping"),
                 };
                 addChatMessage(messages[rand() % messages.size()]);
                 fields->m_randomChatTimer = 0;
                 float t = (progress - fields->goPercent) / (fields->superGoPercent - fields->goPercent);
-                fields->m_nextChatDelay = 0.133f - (t * 0.033f) / 100.0f * fields->m_numViewers;
+                fields->m_nextChatDelay = 0.133f - (t * 0.033f) / 100.0f * abs(fields->m_numViewers);
             }
         }
         // super go
@@ -557,7 +631,7 @@ public:
                 addChatMessage(messages[rand() % messages.size()]);
                 fields->m_randomChatTimer = 0;
                 float t = (progress - fields->superGoPercent) / (99.9999f - fields->superGoPercent);
-                fields->m_nextChatDelay = 0.1f - (t * 0.033f) / 100.0f * fields->m_numViewers;
+                fields->m_nextChatDelay = 0.1f - (t * 0.033f) / 100.0f * abs(fields->m_numViewers);
             }
         }
         // 100%: gg
@@ -570,7 +644,7 @@ public:
                     chat("WWWWWWWWWWWWWWWWWWWWWWWW"),
                     chat("LETS GOOOOO"),
                     chat("WOOOOOOOOOOOOO"),
-                    chat("HE DID IT"),
+                    chat(to_upper(fields->m_he)+" DID IT"),
                     chat("NO WAY BRO"),
                     chat("ACTUAL W"),
                     chat("POGGERS"),
@@ -585,7 +659,7 @@ public:
                 };
                 addChatMessage(messages[rand() % messages.size()]);
                 fields->m_randomChatTimer = 0;
-                fields->m_nextChatDelay = 0.033f + (rand() % 18) / 1000.0f / 100.0f * fields->m_numViewers;
+                fields->m_nextChatDelay = 0.033f + (rand() % 18) / 1000.0f / 100.0f * abs(fields->m_numViewers);
             }
         } 
 
@@ -660,7 +734,7 @@ public:
             fields->m_isDeathSpamming = true;
             float t = progress / 100.0f;
             fields->m_deathSpamDuration = 2.0f + (t * t * 12.0f);
-            fields->m_nextChatDelay = 0.5f - (t * 0.49f) / 100 * fields->m_numViewers;
+            fields->m_nextChatDelay = 0.5f - (t * 0.49f) / 100 * abs(fields->m_numViewers);
         }
         fields->att += 1;
         fields->m_clipMessageFired = false;

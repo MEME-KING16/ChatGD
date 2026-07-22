@@ -9,4 +9,9 @@ Yukurotei/Nightman/NightShard/siniNight/Yuruni/Reinasally/Sinsteria/Vorax/Yeren/
 dominokiddoo - idea to add every geode mod dev to list of chatters
 
 # Stuff
-Join the discord if you want to beta test!
+Join the discord if you want to beta test or have any suggestions!
+
+# Supporters
+none :(
+
+-# kieran (ignore this)
