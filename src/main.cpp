@@ -266,7 +266,7 @@ public:
 
         auto fields = m_fields.self();
         fields->m_lvl = level;
-        fields->m_bestPercent = (float)level->getNormalPercent();
+        fields->m_bestPercent = (float)level->m_normalPercent.value();
         fields->m_echoClipPresent = Loader::get()->isModLoaded("axiom.echoclip");
 
         auto winSize = CCDirector::sharedDirector()->getWinSize();
