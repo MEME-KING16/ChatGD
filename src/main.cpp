@@ -258,8 +258,8 @@ public:
         fields->m_him = Mod::get()->getSettingValue<std::string>("him");
     }
 
-    bool init(GJGameLevel* level, bool useReplay, bool dontCreateObjects) {
-        if (!PlayLayer::init(level, useReplay, dontCreateObjects))
+    bool init(GJGameLevel* level, bool useReplay) {
+        if (!PlayLayer::init(level, useReplay))
             return false;
 
         this->reloadThresholds();
