@@ -442,7 +442,7 @@ public:
             if (fields->m_deathChatTimer >= fields->m_deathSpamDuration) {
                 fields->m_isDeathSpamming = false;
                 fields->m_deathChatTimer = 0;
-            } else if (fields->m_lastAttPercent <= (float)fields->m_lvl->getNormalPercent()) {
+            } else if (fields->m_lastAttPercent <= (float)fields->m_lvl->m_normalPercent.value()) {
                 fields->m_randomChatTimer += dt;
                 if (fields->m_randomChatTimer >= fields->m_nextChatDelay) {
                     std::vector<std::string> deathMessages;
@@ -501,7 +501,7 @@ public:
                     addChatMessage(deathMessages[rand() % deathMessages.size()]);
                     fields->m_randomChatTimer = 0;
                 }
-            } else if (fields->m_lastAttPercent > (float)fields->m_lvl->getNormalPercent()) {
+            } else if (fields->m_lastAttPercent > (float)fields->m_lvl->m_normalPercent.value()) {
                     fields->m_randomChatTimer += dt;
                     if (fields->m_randomChatTimer >= fields->m_nextChatDelay) {
                         std::vector<std::string> messages = {
