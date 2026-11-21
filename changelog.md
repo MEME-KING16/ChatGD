@@ -1,4 +1,8 @@
 # ChatGD Changelog
+## v1.5.0-beta.2
+- changelog
+## v1.5.0-beta.1
+- 2.2091
 ## v1.4.0
 - fix enabled-by-default
 - positivity
