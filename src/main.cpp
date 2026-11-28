@@ -690,7 +690,7 @@ class $modify(MyPauseLayer, PauseLayer) {
     void customSetup() {
         PauseLayer::customSetup();
 
-        auto rightMenu = this->getChildByID("right-button-menu");
+        auto rightMenu = this->getChildByID("main-layer")->getChildByID("right-button-menu");
         if (!rightMenu) {
             log::error("right-button-menu not found");
             return;

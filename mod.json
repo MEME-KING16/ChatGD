@@ -1,5 +1,5 @@
 {
-	"geode": "6.0.0-beta.1",
+	"geode": "6.0.0",
 	"gd": {
 		"win": "2.2091",
 		"android": "2.2091",
@@ -8,14 +8,14 @@
 	},
 	"id": "memeking16.chatgd",
 	"name": "ChatGD",
-	"version": "v1.5.0-beta.2",
+	"version": "v1.5.0",
 	"developers": [
 		"MEMEKING16",
 		"Axiom"
 	],
 	"description": "A mod that adds a chat as if you were live streaming",
 	"dependencies": {
-        "geode.node-ids": ">=1.24.0-beta.1"
+        "geode.node-ids": ">=1.24.0"
     },
 	"links": {
         "source": "https://github.com/MEME-KING16/ChatGD",

@@ -1,4 +1,6 @@
 # ChatGD Changelog
+## v1.5.0
+- fixed oopsie
 ## v1.5.0-beta.2
 - changelog
 ## v1.5.0-beta.1
